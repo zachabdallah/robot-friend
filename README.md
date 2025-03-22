@@ -1,3 +1,5 @@
+As of 3/21/25, you only have to run main.py, as it integrates the speech-to-text and text-to-speech functions into one place, along with allowing communication with whatever ollama model we're using
+
 ###################################################################
 
 ON RASPBERRY PI OS
