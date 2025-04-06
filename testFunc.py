@@ -1,3 +1,33 @@
+# setup instructions for a fresh raspberry pi:
+# ---------------------------------------------
+# 1. update system packages
+# sudo apt update && sudo apt upgrade -y
+
+# 2. install system dependencies
+# sudo apt install python3 python3-pip python3-venv git espeak portaudio19-dev -y
+
+# 3. create project directory
+# mkdir -p ~/robot-friend && cd ~/robot-friend
+
+# 4. set up a virtual environment (optional but recommended)
+# python3 -m venv venv
+# source venv/bin/activate
+
+# 5. install required python packages
+# pip install pyaudio psutil vosk ollama
+
+# 6. download vosk model (adjust URL if needed)
+# wget https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
+# unzip vosk-model-small-en-us-0.15.zip
+# mv vosk-model-small-en-us-0.15 ~/robot-friend/
+
+# 7. ensure ollama is installed and a model is pulled
+# follow install steps at https://ollama.com/download (arm64 supported via container)
+# ollama pull deepseek-r1:1.5b
+
+# 8. run the script
+# python3 robot_friend.py
+
 import os
 import subprocess
 import json
@@ -81,7 +111,7 @@ def monitor_cpu(threshold=cpu_alert_threshold):
             try:
                 cpu_usage = psutil.cpu_percent(interval=5)
                 if cpu_usage > threshold:
-                    print(f"\ud83d\udd25 cpu usage is {cpu_usage}%")
+                    print(f"🔥 cpu usage is {cpu_usage}%")
                     subprocess.run(["espeak", "-v", "en", "-s", "150", "-a", "200", "i am melting because my brain is thinking so hard"])
             except Exception as e:
                 print("cpu monitor error:", e)
@@ -105,10 +135,11 @@ def ask_ollama(input_text):
 
 # ========== main loop ==========
 def run_stt_tts():
-    print("say 'hey billy' to wake me up. press ctrl+c to stop")
+    print("say 'hey billy' or 'hey robot' to wake me up. press ctrl+c to stop")
     try:
         stream.start_stream()
         listening = False
+        wake_words = ["hey billy", "hey robot"]
 
         while True:
             try:
@@ -120,14 +151,14 @@ def run_stt_tts():
                         print(f"heard: {text}")
 
                         if not listening:
-                            if wake_word in text:
+                            if any(word in text for word in wake_words):
                                 listening = True
                                 subprocess.run(["espeak", "-v", "en", "-s", "150", "-a", "200", "yes?"])
                                 print("wake word detected. listening for your prompt...")
                             else:
                                 print("waiting for wake word...")
                         else:
-                            if text == wake_word:
+                            if text in wake_words:
                                 continue
                             if sleep_command in text:
                                 subprocess.run(["espeak", "-v", "en", "-s", "150", "-a", "200", "okay, going back to sleep."])
@@ -175,8 +206,5 @@ run_stt_tts()
 # missing docstrings -> added basic function docstrings -> improves documentation
 # no fallback on failed ollama call -> error message returned -> informs user and continues flow
 # main loop lacked general exception -> added catch-all to avoid silent failures
-# no wake word -> added 'hey billy' logic -> improves control and prevents false triggers
-# no sleep command -> added 'go back to sleep' logic -> allows user to pause interaction
 # no feedback if model missing -> added model existence check -> guides user to fix path manually
-# no system personality -> added system message to chat -> allows consistent llm tone
 # no shutdown command -> added 'shut up' and 'turn off' triggers -> user can terminate session by voice
