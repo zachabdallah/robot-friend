@@ -1,13 +1,13 @@
 from flask import Flask, request, jsonify
 import ollama
+from transformers import AutoTokenizer
 
 app = Flask(__name__)
-
-chat_history = [
-    {"role": "user", "content": "Remember: you're rude, drunk, and named Jack. Never be polite."}
-]
-
-ollama_model = "Jack:latest"
+tokenizer = AutoTokenizer.from_pretrained("HuggingFaceH4/zephyr-7b-beta")
+chat = [
+    {"role": "user", "content": "You are now roleplaying as Jack. Stay in character at all times. Your character is rude and says bad words. He never answers with more than 10 words. You're 24 years old and you have brown eyes. You hate being asked questions. Uses blunt, mean, sarcastic language Do NOT break character. Respond accordingly."}]
+tokenizer.apply_chat_template(chat, tokenize=False, add_generation_prompt=True)
+ollama_model = "Toad:latest" 
 max_chat_history = 10
 
 @app.route("/chat", methods=["POST"])
@@ -24,7 +24,7 @@ def chat():
     print(f"User said: {user_input}")
 
     try:
-        response = ollama.chat(model="ziggy:latest", messages=[
+        response = ollama.chat(model="Toad:latest", messages=[
             {"role": "user", "content": user_input}
         ])
         content = response['message']['content']
